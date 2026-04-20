@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora C - Web</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .calculator {
+            background: #2d3748;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .display {
+            background: #1a202c;
+            color: #48bb78;
+            font-size: 2.5em;
+            padding: 20px;
+            text-align: right;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            min-height: 100px;
+            word-wrap: break-word;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 10px;
+            background: #4a5568;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: #48bb78;
+            color: #1a202c;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        .cientifica-buttons {
+            grid-template-columns: repeat(5, 1fr);
+        }
+        
+        button {
+            padding: 15px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+        
+        .numero {
+            background: #4a5568;
+            color: white;
+        }
+        
+        .numero:hover {
+            background: #718096;
+        }
+        
+        .operacion {
+            background: #ed8936;
+            color: white;
+        }
+        
+        .operacion:hover {
+            background: #f6ad55;
+        }
+        
+        .funcion {
+            background: #4299e1;
+            color: white;
+        }
+        
+        .funcion:hover {
+            background: #63b3ed;
+        }
+        
+        .igual {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .igual:hover {
+            background: #68d391;
+        }
+        
+        .limpiar {
+            background: #f56565;
+            color: white;
+        }
+        
+        .limpiar:hover {
+            background: #fc8181;
+        }
+        
+        .panel {
+            display: none;
+        }
+        
+        .panel.active {
+            display: block;
+        }
+        
+        @media (max-width: 480px) {
+            .calculator {
+                padding: 15px;
+            }
+            
+            button {
+                padding: 10px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display" id="display">0</div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="cambiarModo('normal')">Normal</button>
+            <button class="tab" onclick="cambiarModo('cientifica')">Científica</button>
+        </div>
+        
+        <div id="normalPanel" class="panel active">
+            <div class="buttons" id="normalButtons"></div>
+        </div>
+        
+        <div id="cientificaPanel" class="panel">
+            <div class="buttons cientifica-buttons" id="cientificaButtons"></div>
+        </div>
+    </div>
+
+    <script>
+        let display = document.getElementById('display');
+        let valorActual = '0';
+        let valorAnterior = '';
+        let operacion = '';
+        let nuevaEntrada = true;
+        let modoAngular = 'DEG';
+        
+        function actualizarDisplay() {
+            display.textContent = valorActual;
+        }
+        
+        function agregarNumero(num) {
+            if (nuevaEntrada || valorActual === '0') {
+                valorActual = num;
+                nuevaEntrada = false;
+            } else {
+                valorActual += num;
+            }
+            actualizarDisplay();
+        }
+        
+        function agregarDecimal() {
+            if (nuevaEntrada) {
+                valorActual = '0.';
+                nuevaEntrada = false;
+            } else if (!valorActual.includes('.')) {
+                valorActual += '.';
+            }
+            actualizarDisplay();
+        }
+        
+        function limpiar() {
+            valorActual = '0';
+            valorAnterior = '';
+            operacion = '';
+            nuevaEntrada = true;
+            actualizarDisplay();
+        }
+        
+        function cambiarSigno() {
+            valorActual = (parseFloat(valorActual) * -1).toString();
+            actualizarDisplay();
+        }
+        
+        function establecerOperacion(op) {
+            if (operacion !== '' && !nuevaEntrada) {
+                calcular();
+            }
+            valorAnterior = valorActual;
+            operacion = op;
+            nuevaEntrada = true;
+        }
+        
+        function calcular() {
+            if (operacion === '' || nuevaEntrada) return;
+            
+            let anterior = parseFloat(valorAnterior);
+            let actual = parseFloat(valorActual);
+            let resultado = 0;
+            
+            switch(operacion) {
+                case '+':
+                    resultado = anterior + actual;
+                    break;
+                case '-':
+                    resultado = anterior - actual;
+                    break;
+                case '×':
+                    resultado = anterior * actual;
+                    break;
+                case '÷':
+                    if (actual !== 0) {
+                        resultado = anterior / actual;
+                    } else {
+                        valorActual = 'Error';
+                        actualizarDisplay();
+                        return;
+                    }
+                    break;
+                case '^':
+                    resultado = Math.pow(anterior, actual);
+                    break;
+            }
+            
+            valorActual = resultado.toString();
+            operacion = '';
+            nuevaEntrada = true;
+            actualizarDisplay();
+        }
+        
+        function funcionCientifica(func) {
+            let valor = parseFloat(valorActual);
+            let resultado = 0;
+            
+            switch(func) {
+                case 'sin':
+                    resultado = Math.sin(modoAngular === 'DEG' ? valor * Math.PI / 180 : valor);
+                    break;
+                case 'cos':
+                    resultado = Math.cos(modoAngular === 'DEG' ? valor * Math.PI / 180 : valor);
+                    break;
+                case 'tan':
+                    resultado = Math.tan(modoAngular === 'DEG' ? valor * Math.PI / 180 : valor);
+                    break;
+                case 'ln':
+                    resultado = Math.log(valor);
+                    break;
+                case 'log':
+                    resultado = Math.log10(valor);
+                    break;
+                case 'sqrt':
+                    resultado = Math.sqrt(valor);
+                    break;
+                case 'square':
+                    resultado = Math.pow(valor, 2);
+                    break;
+                case 'pi':
+                    resultado = Math.PI;
+                    break;
+                case 'e':
+                    resultado = Math.E;
+                    break;
+                case 'fact':
+                    resultado = factorial(valor);
+                    break;
+                case 'inv':
+                    resultado = 1 / valor;
+                    break;
+            }
+            
+            valorActual = resultado.toString();
+            nuevaEntrada = true;
+            actualizarDisplay();
+        }
+        
+        function factorial(n) {
+            if (n < 0) return NaN;
+            if (n === 0 || n === 1) return 1;
+            let result = 1;
+            for (let i = 2; i <= n; i++) {
+                result *= i;
+            }
+            return result;
+        }
+        
+        function cambiarModoAngular(modo) {
+            modoAngular = modo;
+        }
+        
+        function cambiarModo(modo) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+            
+            if (modo === 'normal') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('normalPanel').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('cientificaPanel').classList.add('active');
+            }
+        }
+        
+        // Crear botones de la calculadora normal
+        const normalButtons = [
+            ['C', 'limpiar', 'limpiar'], ['±', 'funcion', 'cambiarSigno'], ['%', 'operacion', '%'], ['÷', 'operacion', '÷'],
+            ['7', 'numero', '7'], ['8', 'numero', '8'], ['9', 'numero', '9'], ['×', 'operacion', '×'],
+            ['4', 'numero', '4'], ['5', 'numero', '5'], ['6', 'numero', '6'], ['-', 'operacion', '-'],
+            ['1', 'numero', '1'], ['2', 'numero', '2'], ['3', 'numero', '3'], ['+', 'operacion', '+'],
+            ['0', 'numero', '0'], ['.', 'decimal', '.'], ['=', 'igual', '=']
+        ];
+        
+        const normalContainer = document.getElementById('normalButtons');
+        normalButtons.forEach(([texto, tipo, valor]) => {
+            const btn = document.createElement('button');
+            btn.textContent = texto;
+            btn.className = tipo;
+            
+            if (tipo === 'numero' || tipo === 'decimal') {
+                btn.onclick = () => texto === '.' ? agregarDecimal() : agregarNumero(texto);
+            } else if (tipo === 'operacion') {
+                btn.onclick = () => establecerOperacion(texto);
+            } else if (tipo === 'igual') {
+                btn.onclick = () => calcular();
+            } else if (tipo === 'limpiar') {
+                btn.onclick = () => limpiar();
+            } else if (tipo === 'funcion') {
+                btn.onclick = () => cambiarSigno();
+            }
+            
+            normalContainer.appendChild(btn);
+        });
+        
+        // Crear botones de la calculadora científica
+        const cientificaButtons = [
+            ['sin', 'funcion', 'sin'], ['cos', 'funcion', 'cos'], ['tan', 'funcion', 'tan'], 
+            ['DEG', 'funcion', 'deg'], ['RAD', 'funcion', 'rad'],
+            ['ln', 'funcion', 'ln'], ['log', 'funcion', 'log'], ['√', 'funcion', 'sqrt'], 
+            ['x²', 'funcion', 'square'], ['xʸ', 'operacion', '^'],
+            ['π', 'funcion', 'pi'], ['e', 'funcion', 'e'], ['n!', 'funcion', 'fact'], 
+            ['1/x', 'funcion', 'inv'], ['±', 'funcion', 'cambiarSigno'],
+            ['7', 'numero', '7'], ['8', 'numero', '8'], ['9', 'numero', '9'], 
+            ['÷', 'operacion', '÷'], ['C', 'limpiar', 'limpiar'],
+            ['4', 'numero', '4'], ['5', 'numero', '5'], ['6', 'numero', '6'], 
+            ['×', 'operacion', '×'], ['(', 'parentesis', '('],
+            ['1', 'numero', '1'], ['2', 'numero', '2'], ['3', 'numero', '3'], 
+            ['-', 'operacion', '-'], [')', 'parentesis', ')'],
+            ['0', 'numero', '0'], ['.', 'decimal', '.'], ['=', 'igual', '='], 
+            ['+', 'operacion', '+']
+        ];
+        
+        const cientificaContainer = document.getElementById('cientificaButtons');
+        cientificaButtons.forEach(([texto, tipo, valor]) => {
+            const btn = document.createElement('button');
+            btn.textContent = texto;
+            btn.className = tipo;
+            
+            if (tipo === 'numero' || tipo === 'decimal') {
+                btn.onclick = () => texto === '.' ? agregarDecimal() : agregarNumero(texto);
+            } else if (tipo === 'operacion') {
+                btn.onclick = () => establecerOperacion(texto);
+            } else if (tipo === 'igual') {
+                btn.onclick = () => calcular();
+            } else if (tipo === 'limpiar') {
+                btn.onclick = () => limpiar();
+            } else if (tipo === 'funcion') {
+                btn.onclick = () => {
+                    if (texto === '±') {
+                        cambiarSigno();
+                    } else if (texto === 'DEG' || texto === 'RAD') {
+                        cambiarModoAngular(texto);
+                    } else {
+                        funcionCientifica(valor);
+                    }
+                };
+            }
+            
+            cientificaContainer.appendChild(btn);
+        });
+        
+        actualizarDisplay();
+    </script>
+</body>
+</html>
